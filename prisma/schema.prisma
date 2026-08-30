@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Business {
+  id         String      @id @default(cuid())
+  name       String
+  type       String // "restaurant", "grocery_store", "pharmacy", etc.
+  address    String
+  phone      String      @unique
+  scheduleDays  String?
+  scheduleHours String?
+  latitude   Float
+  longitude  Float
+  isDelivery Boolean     @default(false)
+  photoUrl   String?
+  isActive   Boolean     @default(true)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  products   Product[]
+
+  @@index([name])
+  @@index([type])
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  price       Float
+  unit        String   @default("unit") // "kg", "liter", "bottle", etc.
+  category    String   @default("general")
+  imageUrl    String?
+  isAvailable Boolean  @default(true)
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([businessId])
+  @@index([name])
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  icon      String?
+  createdAt DateTime @default(now())
+}
