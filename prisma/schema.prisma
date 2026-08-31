@@ -19,6 +19,9 @@ model Business {
   longitude  Float
   isDelivery Boolean     @default(false)
   photoUrl   String?
+  paymentMethods  String     @default("cash") // comma-separated: "cash" or "cash,transfer"
+  paymentPlatform String?    // "enzona" or "transfermovil" (when transfer is selected)
+  paymentNote     String?    // e.g. "Transfers up to 10,000 CUP"
   isActive   Boolean     @default(true)
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt

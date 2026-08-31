@@ -1,4 +1,5 @@
 import { prisma } from "./../db";
+import { parsePaymentMethods } from "./../validators";
 import type { CreateProductInput, QueryProductsInput } from "./../validators";
 
 const STALE_AFTER_HOURS = 72;
@@ -13,6 +14,9 @@ export type ProductWithBusiness = {
   isAvailable: boolean;
   businessId: string;
   businessName: string;
+  businessLatitude: number;
+  businessLongitude: number;
+  businessPaymentMethods: string[];
 };
 
 const PRODUCT_FIELDS = {
@@ -25,7 +29,15 @@ const PRODUCT_FIELDS = {
   isAvailable: true,
   businessId: true,
   updatedAt: true,
-  business: { select: { name: true, isActive: true } },
+  business: {
+    select: {
+      name: true,
+      latitude: true,
+      longitude: true,
+      isActive: true,
+      paymentMethods: true,
+    },
+  },
 } as const;
 
 function toStaleCutoff(): Date {
@@ -42,7 +54,12 @@ function toProductWithBusiness(
     imageUrl: string | null;
     isAvailable: boolean;
     businessId: string;
-    business: { name: string };
+    business: {
+      name: string;
+      latitude: number;
+      longitude: number;
+      paymentMethods: string;
+    };
   },
 ): ProductWithBusiness {
   return {
@@ -55,6 +72,9 @@ function toProductWithBusiness(
     isAvailable: product.isAvailable,
     businessId: product.businessId,
     businessName: product.business.name,
+    businessLatitude: product.business.latitude,
+    businessLongitude: product.business.longitude,
+    businessPaymentMethods: parsePaymentMethods(product.business.paymentMethods),
   };
 }
 

@@ -13,6 +13,8 @@ import {
 import type { Business } from "@/types";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { calculateDistanceKm } from "@/lib/geo";
+import { cn } from "@/lib/utils";
+import { isOpenNow } from "@/lib/systemuitls";
 import { Clock, Navigation, Store } from "lucide-react";
 import {
   Card,
@@ -37,6 +39,7 @@ type MapContainerProps = {
   businesses?: Business[];
   pickerCoordinates?: Coordinates | null;
   myLocation?: Coordinates | null;
+  focusCoordinates?: Coordinates | null;
   onClickCoordinates?: (coordinates: Coordinates) => void;
 };
 
@@ -44,11 +47,13 @@ export function MapContainer({
   businesses = [],
   pickerCoordinates = null,
   myLocation = null,
+  focusCoordinates = null,
   onClickCoordinates,
 }: MapContainerProps) {
   return (
     <Map center={HAVANA_CENTER} zoom={INITIAL_ZOOM}>
       {onClickCoordinates && <ClickCapture onClick={onClickCoordinates} />}
+      {focusCoordinates && <FlyToTarget target={focusCoordinates} />}
       {myLocation && (
         <MapMarker
           longitude={myLocation.longitude}
@@ -129,6 +134,21 @@ function ClickCapture({
   return null;
 }
 
+function FlyToTarget({ target }: { target: Coordinates }) {
+  const { map, isLoaded } = useMap();
+
+  useEffect(() => {
+    if (!map || !isLoaded) return;
+    map.flyTo({
+      center: [target.longitude, target.latitude],
+      zoom: 15,
+      duration: 1200,
+    });
+  }, [map, isLoaded, target]);
+
+  return null;
+}
+
 function MyLocationPin() {
   return (
     <div className="relative flex h-6 w-6 items-center justify-center">
@@ -142,9 +162,16 @@ function MyLocationPin() {
 }
 
 function BusinessPin({ business }: { business: Business }) {
+  const openStatus = isOpenNow(business.scheduleDays, business.scheduleHours);
+  const borderClass =
+    openStatus === true ? "border-green-400" : "border-gray-300";
+
   return (
     <div className="relative">
-      <Avatar size="default" className={"border-2 border-white bg-red-50"}>
+      <Avatar
+        size="default"
+        className={cn("border-2 bg-red-50", borderClass)}
+      >
         {business.photoUrl && (
           <AvatarImage src={business.photoUrl} alt={business.name} />
         )}
@@ -170,6 +197,8 @@ function BusinessPopup({
   business: Business;
   distanceKm: number | null;
 }) {
+  const openStatus = isOpenNow(business.scheduleDays, business.scheduleHours);
+
   return (
     <Card size="sm" className="w-56">
       <CardHeader>
@@ -192,6 +221,7 @@ function BusinessPopup({
             <Navigation size={14} /> {formatDistance(distanceKm)} away
           </CardDescription>
         )}
+        <OpenStatusBadge status={openStatus} />
         {business.scheduleDays && (
           <CardDescription className="flex items-center gap-1 font-medium text-foreground">
             <Clock size={16} /> {business.scheduleDays}
@@ -207,5 +237,21 @@ function BusinessPopup({
         <BusinessDetailsDialog business={business} distanceKm={distanceKm} />
       </CardContent>
     </Card>
+  );
+}
+
+function OpenStatusBadge({ status }: { status: boolean | null }) {
+  if (status === null) return null;
+
+  return status ? (
+    <span className="inline-flex w-fit items-center rounded-full bg-green-500/15 px-2.5 py-0.5 text-xs font-medium text-green-400">
+      <span className="mr-1.5 size-1.5 rounded-full bg-green-400" />
+      Open now
+    </span>
+  ) : (
+    <span className="inline-flex w-fit items-center rounded-full bg-red-500/15 px-2.5 py-0.5 text-xs font-medium text-red-400">
+      <span className="mr-1.5 size-1.5 rounded-full bg-red-400" />
+      Currently closed
+    </span>
   );
 }

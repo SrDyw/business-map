@@ -95,6 +95,22 @@ function FieldDescription({
   );
 }
 
+function FieldTitle({
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="field-title"
+      className={cn(
+        "text-sm leading-snug font-medium",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
 function FieldError({
   className,
   children,
@@ -119,6 +135,7 @@ export {
   FieldGroup,
   FieldContent,
   FieldLabel,
+  FieldTitle,
   FieldDescription,
   FieldError,
 };

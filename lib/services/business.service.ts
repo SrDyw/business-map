@@ -1,5 +1,9 @@
 import { prisma } from "./../db";
 import { calculateDistanceKm } from "./../geo";
+import {
+  parsePaymentMethods,
+  serializePaymentMethods,
+} from "./../validators";
 import type {
   CreateBusinessInput,
   QueryBusinessesInput,
@@ -17,6 +21,9 @@ export type BusinessWithDistance = {
   longitude: number;
   isDelivery: boolean;
   photoUrl: string | null;
+  paymentMethods: string[];
+  paymentPlatform: string | null;
+  paymentNote: string | null;
   isActive: boolean;
   distanceKm: number | null;
 };
@@ -33,6 +40,9 @@ const BUSINESS_FIELDS = {
   longitude: true,
   isDelivery: true,
   photoUrl: true,
+  paymentMethods: true,
+  paymentPlatform: true,
+  paymentNote: true,
   isActive: true,
 } as const;
 
@@ -59,12 +69,18 @@ export async function listBusinesses(
           )
         : null;
 
-    return { ...business, distanceKm };
+    return {
+      ...business,
+      paymentMethods: parsePaymentMethods(business.paymentMethods),
+      distanceKm,
+    };
   });
 }
 
 export async function createBusiness(data: CreateBusinessInput) {
-  return prisma.business.create({
+  const methods = data.paymentMethods ?? ["cash"];
+  const includesTransfer = methods.includes("transfer");
+  const created = await prisma.business.create({
     data: {
       name: data.name,
       type: data.type,
@@ -74,11 +90,20 @@ export async function createBusiness(data: CreateBusinessInput) {
       scheduleHours: data.scheduleHours || null,
       isDelivery: data.isDelivery,
       photoUrl: data.photoUrl || null,
+      paymentMethods: serializePaymentMethods(methods),
+      paymentPlatform: includesTransfer ? data.paymentPlatform || null : null,
+      paymentNote: includesTransfer ? data.paymentNote || null : null,
       latitude: data.latitude,
       longitude: data.longitude,
       isActive: true,
     },
+    select: BUSINESS_FIELDS,
   });
+
+  return {
+    ...created,
+    paymentMethods: parsePaymentMethods(created.paymentMethods),
+  };
 }
 
 export function isDuplicatePhoneError(error: unknown): boolean {

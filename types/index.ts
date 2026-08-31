@@ -10,6 +10,9 @@ export type Business = {
   longitude: number;
   isDelivery: boolean;
   photoUrl: string | null;
+  paymentMethods: string[];
+  paymentPlatform: string | null;
+  paymentNote: string | null;
   isActive: boolean;
 };
 
@@ -30,6 +33,9 @@ export type Product = {
 
 export type ProductWithBusiness = Product & {
   businessName: string;
+  businessLatitude: number;
+  businessLongitude: number;
+  businessPaymentMethods: string[];
 };
 
 export type CreateBusinessData = {
@@ -40,6 +46,9 @@ export type CreateBusinessData = {
   scheduleDays?: string;
   scheduleHours?: string;
   isDelivery?: boolean;
+  paymentMethods?: string[];
+  paymentPlatform?: string | null;
+  paymentNote?: string | null;
   latitude: number;
   longitude: number;
 };

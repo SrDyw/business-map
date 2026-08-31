@@ -26,13 +26,26 @@ import {
   FieldDescription,
   FieldGroup,
   FieldLabel,
+  FieldTitle,
 } from "@/components/ui/field";
 import { Switch } from "@/components/ui/switch";
 import { Stepper } from "@/components/ui/stepper";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { BusinessTypeSelect } from "@/components/business/BusinessTypeSelect";
 import { ScheduleStep } from "@/components/business/ScheduleStep";
 import { BusinessImage } from "@/components/business/BusinessImage";
-import { createBusinessSchema } from "@/lib/validators";
+import {
+  PAYMENT_METHOD_LABELS,
+  PAYMENT_PLATFORM_LABELS,
+  PAYMENT_PLATFORMS,
+  createBusinessSchema,
+} from "@/lib/validators";
 import {
   buildScheduleDays,
   buildScheduleHours,
@@ -60,6 +73,9 @@ type FormFields = {
   scheduleHours: string;
   isDelivery: boolean;
   photoUrl: string;
+  paymentMethods: string[];
+  paymentPlatform: string;
+  paymentNote: string;
 };
 
 const EMPTY_FORM: FormFields = {
@@ -71,6 +87,9 @@ const EMPTY_FORM: FormFields = {
   scheduleHours: "",
   isDelivery: false,
   photoUrl: "",
+  paymentMethods: ["cash"],
+  paymentPlatform: "enzona",
+  paymentNote: "",
 };
 
 const EMPTY_SCHEDULE: ScheduleData = {
@@ -91,7 +110,13 @@ const STEP_TITLES = [
 
 const STEP_SCHEMAS = [
   createBusinessSchema.pick({ name: true, type: true, address: true, phone: true }),
-  createBusinessSchema.pick({ isDelivery: true, photoUrl: true }),
+  createBusinessSchema.pick({
+    isDelivery: true,
+    photoUrl: true,
+    paymentMethods: true,
+    paymentPlatform: true,
+    paymentNote: true,
+  }),
   createBusinessSchema.pick({ scheduleDays: true, scheduleHours: true }),
   createBusinessSchema.pick({ latitude: true, longitude: true }),
 ];
@@ -118,6 +143,19 @@ export function RegistrationForm({
     updateField("phone", digitsOnly);
   }
 
+  function togglePaymentMethod(method: string) {
+    setFields((prev) => {
+      const exists = prev.paymentMethods.includes(method);
+      const next = exists
+        ? prev.paymentMethods.filter((m) => m !== method)
+        : [...prev.paymentMethods, method];
+      return {
+        ...prev,
+        paymentMethods: next.length === 0 ? prev.paymentMethods : next,
+      };
+    });
+  }
+
   function getStepPayload(step: number) {
     switch (step) {
       case 0:
@@ -131,6 +169,9 @@ export function RegistrationForm({
         return {
           isDelivery: fields.isDelivery,
           photoUrl: fields.photoUrl,
+          paymentMethods: fields.paymentMethods,
+          paymentPlatform: fields.paymentPlatform,
+          paymentNote: fields.paymentNote,
         };
       case 2:
         return {
@@ -187,6 +228,9 @@ export function RegistrationForm({
       scheduleHours: buildScheduleHours(scheduleData),
       isDelivery: fields.isDelivery,
       photoUrl: fields.photoUrl,
+      paymentMethods: fields.paymentMethods,
+      paymentPlatform: fields.paymentPlatform,
+      paymentNote: fields.paymentNote,
       latitude: initialCoordinates.latitude,
       longitude: initialCoordinates.longitude,
     });
@@ -205,6 +249,7 @@ export function RegistrationForm({
 
     setIsSubmitting(true);
     try {
+      const includesTransfer = parse.data.paymentMethods.includes("transfer");
       const response = await fetch("/api/v1/businesses", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -213,6 +258,12 @@ export function RegistrationForm({
           scheduleDays: parse.data.scheduleDays || undefined,
           scheduleHours: parse.data.scheduleHours || undefined,
           photoUrl: parse.data.photoUrl || undefined,
+          paymentPlatform: includesTransfer
+            ? parse.data.paymentPlatform || undefined
+            : undefined,
+          paymentNote: includesTransfer
+            ? parse.data.paymentNote || undefined
+            : undefined,
         }),
       });
 
@@ -246,7 +297,7 @@ export function RegistrationForm({
       </CardHeader>
 
       <form id={FORM_ID} onSubmit={handleSubmit} noValidate>
-        <CardContent className="space-y-5">
+        <CardContent className="space-y-5 pb-10">
           <Stepper
             steps={STEP_TITLES.map(({ title, description }, i) => ({
               title,
@@ -374,6 +425,87 @@ export function RegistrationForm({
                   </FieldDescription>
                 )}
               </Field>
+
+              <div className="border-t border-border pt-1" />
+
+              <Field>
+                <FieldLabel>Payment methods</FieldLabel>
+                <FieldDescription>
+                  Select all the methods your business accepts.
+                </FieldDescription>
+              </Field>
+
+              <PaymentMethodCard
+                method="cash"
+                title={PAYMENT_METHOD_LABELS.cash}
+                description="Accept cash payments directly at your store."
+                checked={fields.paymentMethods.includes("cash")}
+                onToggle={() => togglePaymentMethod("cash")}
+              />
+
+              <PaymentMethodCard
+                method="transfer"
+                title={PAYMENT_METHOD_LABELS.transfer}
+                description="Accept bank or mobile transfers via Enzona or Transfermóvil."
+                checked={fields.paymentMethods.includes("transfer")}
+                onToggle={() => togglePaymentMethod("transfer")}
+              >
+                {fields.paymentMethods.includes("transfer") && (
+                  <div className="flex flex-col gap-4 border-t border-border pt-4">
+                    <Field>
+                      <FieldLabel htmlFor="payment-platform">
+                        Transfer platform
+                      </FieldLabel>
+                      <Select
+                        value={fields.paymentPlatform}
+                        onValueChange={(value) =>
+                          updateField("paymentPlatform", value ?? "enzona")
+                        }
+                      >
+                        <SelectTrigger id="payment-platform" className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {PAYMENT_PLATFORMS.map((platform) => (
+                            <SelectItem key={platform} value={platform}>
+                              {PAYMENT_PLATFORM_LABELS[platform]}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {errors.paymentPlatform && (
+                        <FieldDescription className="text-destructive">
+                          {errors.paymentPlatform}
+                        </FieldDescription>
+                      )}
+                    </Field>
+
+                    <Field>
+                      <FieldLabel htmlFor="payment-note">
+                        Payment note (optional)
+                      </FieldLabel>
+                      <Input
+                        id="payment-note"
+                        value={fields.paymentNote}
+                        onChange={(e) => updateField("paymentNote", e.target.value)}
+                        placeholder="e.g. Transfers up to 10,000 CUP"
+                        maxLength={120}
+                      />
+                      {errors.paymentNote && (
+                        <FieldDescription className="text-destructive">
+                          {errors.paymentNote}
+                        </FieldDescription>
+                      )}
+                    </Field>
+                  </div>
+                )}
+              </PaymentMethodCard>
+
+              {errors.paymentMethods && (
+                <FieldDescription className="text-destructive">
+                  {errors.paymentMethods}
+                </FieldDescription>
+              )}
             </FieldGroup>
           )}
 
@@ -385,7 +517,8 @@ export function RegistrationForm({
                 updateField("scheduleDays", buildScheduleDays(next));
                 updateField("scheduleHours", buildScheduleHours(next));
               }}
-              error={errors.scheduleDays}
+              daysError={errors.scheduleDays}
+              hoursError={errors.scheduleHours}
             />
           )}
 
@@ -469,5 +602,47 @@ export function RegistrationForm({
         </CardFooter>
       </form>
     </Card>
+  );
+}
+
+function PaymentMethodCard({
+  method,
+  title,
+  description,
+  checked,
+  onToggle,
+  children,
+}: {
+  method: string;
+  title: string;
+  description: string;
+  checked: boolean;
+  onToggle: () => void;
+  children?: React.ReactNode;
+}) {
+  const switchId = `payment-${method}`;
+
+  return (
+    <div
+      className={
+        "flex flex-col gap-4 rounded-lg border border-border p-4 transition-colors " +
+        (checked ? "bg-primary/5" : "bg-transparent")
+      }
+    >
+      <Field orientation="horizontal">
+        <label htmlFor={switchId} className="flex-1 cursor-pointer">
+          <FieldContent>
+            <FieldTitle>{title}</FieldTitle>
+            <FieldDescription>{description}</FieldDescription>
+          </FieldContent>
+        </label>
+        <Switch
+          id={switchId}
+          checked={checked}
+          onCheckedChange={onToggle}
+        />
+      </Field>
+      {checked && children}
+    </div>
   );
 }

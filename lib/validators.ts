@@ -30,6 +30,36 @@ export const BUSINESS_TYPE_LABELS: Record<BusinessType, string> = {
   optical: "Optical",
 };
 
+export const PAYMENT_METHODS = ["cash", "transfer"] as const;
+export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
+export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
+  cash: "Cash",
+  transfer: "Transfer",
+};
+
+export const PAYMENT_METHODS_SEPARATOR = ",";
+
+export function serializePaymentMethods(methods: string[]): string {
+  return Array.from(new Set(methods)).join(PAYMENT_METHODS_SEPARATOR);
+}
+
+export function parsePaymentMethods(value: string | null | undefined): string[] {
+  if (!value) return [];
+  return value
+    .split(PAYMENT_METHODS_SEPARATOR)
+    .map((part) => part.trim())
+    .filter((part): part is PaymentMethod =>
+      (PAYMENT_METHODS as readonly string[]).includes(part),
+    );
+}
+
+export const PAYMENT_PLATFORMS = ["enzona", "transfermovil"] as const;
+export type PaymentPlatform = typeof PAYMENT_PLATFORMS[number];
+export const PAYMENT_PLATFORM_LABELS: Record<PaymentPlatform, string> = {
+  enzona: "Enzona",
+  transfermovil: "Transfermóvil",
+};
+
 export const CUBA_BOUNDS = {
   latMin: 19.8,
   latMax: 23.3,
@@ -44,6 +74,7 @@ const NAME_MAX = 100;
 const ADDRESS_MIN = 5;
 const ADDRESS_MAX = 200;
 const PHOTO_URL_MAX = 500;
+const PAYMENT_NOTE_MAX = 120;
 
 const phoneRegex = /^[0-9]{8,}$/;
 
@@ -102,6 +133,21 @@ export const createBusinessSchema = z.object({
   photoUrl: z
     .url({ error: "The photo must be a valid URL" })
     .max(PHOTO_URL_MAX, `The photo URL cannot exceed ${PHOTO_URL_MAX} characters`)
+    .optional()
+    .or(z.literal("")),
+  paymentMethods: z
+    .array(z.enum(PAYMENT_METHODS))
+    .min(1, "Select at least one payment method")
+    .optional()
+    .default(["cash"]),
+  paymentPlatform: z.enum(PAYMENT_PLATFORMS).optional().nullable(),
+  paymentNote: z
+    .string()
+    .trim()
+    .max(
+      PAYMENT_NOTE_MAX,
+      `Payment note cannot exceed ${PAYMENT_NOTE_MAX} characters`,
+    )
     .optional()
     .or(z.literal("")),
   latitude: latitudeCuba,

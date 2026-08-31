@@ -4,7 +4,6 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   Field,
   FieldDescription,
-  FieldError,
   FieldLabel,
 } from "@/components/ui/field";
 import { TimeInputField } from "@/components/business/TimeInputField";
@@ -15,13 +14,15 @@ import { History } from "lucide-react";
 type ScheduleStepProps = {
   value: ScheduleData;
   onChange: (schedule: ScheduleData) => void;
-  error?: string;
+  daysError?: string;
+  hoursError?: string;
 };
 
 export function ScheduleStep({
   value,
   onChange,
-  error,
+  daysError,
+  hoursError,
 }: ScheduleStepProps) {
   function updateOpenTime(openTime: TimeOfDay) {
     onChange({ ...value, openTime });
@@ -62,7 +63,11 @@ export function ScheduleStep({
         <FieldDescription>
           Select at least one day for your schedule.
         </FieldDescription>
-        {error && <FieldError>{error}</FieldError>}
+        {daysError && (
+          <FieldDescription className="text-destructive">
+            {daysError}
+          </FieldDescription>
+        )}
       </Field>
 
       <div className="flex flex-col gap-5 sm:flex-row">
@@ -83,6 +88,12 @@ export function ScheduleStep({
           />
         </div>
       </div>
+
+      {hoursError && (
+        <FieldDescription className="text-destructive">
+          {hoursError}
+        </FieldDescription>
+      )}
     </div>
   );
 }

@@ -22,7 +22,14 @@ export function BusinessMap({ initialBusinesses }: BusinessMapProps) {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [step, setStep] = useState<Step>("picker");
   const [coordinates, setCoordinates] = useState<Coordinates | null>(null);
+  const [focusCoordinates, setFocusCoordinates] = useState<Coordinates | null>(
+    null,
+  );
   const { location: myLocation } = useGeolocation(true);
+
+  function focusProvider(providerCoordinates: Coordinates) {
+    setFocusCoordinates(providerCoordinates);
+  }
 
   function openForm() {
     setCoordinates(null);
@@ -57,10 +64,13 @@ export function BusinessMap({ initialBusinesses }: BusinessMapProps) {
         businesses={businesses}
         pickerCoordinates={step === "picker" ? coordinates : null}
         myLocation={myLocation}
+        focusCoordinates={focusCoordinates}
         onClickCoordinates={step === "picker" ? selectCoordinates : undefined}
       />
 
-      {!isFormOpen && <ProductSearch />}
+      {!isFormOpen && (
+        <ProductSearch myLocation={myLocation} onSelect={focusProvider} />
+      )}
 
       {!isFormOpen && (
         <Button
