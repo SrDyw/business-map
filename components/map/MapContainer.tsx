@@ -14,7 +14,7 @@ import type { Business } from "@/types";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { calculateDistanceKm } from "@/lib/geo";
 import { cn } from "@/lib/utils";
-import { isOpenNow } from "@/lib/systemuitls";
+import { useOpenStatus } from "@/hooks/useOpenStatus";
 import { Clock, Navigation, Store } from "lucide-react";
 import {
   Card,
@@ -162,7 +162,10 @@ function MyLocationPin() {
 }
 
 function BusinessPin({ business }: { business: Business }) {
-  const openStatus = isOpenNow(business.scheduleDays, business.scheduleHours);
+  const openStatus = useOpenStatus(
+    business.scheduleDays,
+    business.scheduleHours,
+  );
   const borderClass =
     openStatus === true ? "border-green-400" : "border-gray-300";
 
@@ -197,7 +200,10 @@ function BusinessPopup({
   business: Business;
   distanceKm: number | null;
 }) {
-  const openStatus = isOpenNow(business.scheduleDays, business.scheduleHours);
+  const openStatus = useOpenStatus(
+    business.scheduleDays,
+    business.scheduleHours,
+  );
 
   return (
     <Card size="sm" className="w-56">

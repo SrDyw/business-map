@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Plus, X } from "lucide-react";
 
 import { MapContainer, type Coordinates } from "@/components/map/MapContainer";
+import { AuthButton } from "@/components/auth/AuthButton";
 import { RegistrationForm } from "@/components/business/RegistrationForm";
 import { Button } from "@/components/ui/button";
 import { useGeolocation } from "@/hooks/useGeolocation";
@@ -71,6 +72,10 @@ export function BusinessMap({ initialBusinesses }: BusinessMapProps) {
       {!isFormOpen && (
         <ProductSearch myLocation={myLocation} onSelect={focusProvider} />
       )}
+
+      <div className="absolute top-[4.5rem] right-4 z-10 sm:top-4">
+        <AuthButton />
+      </div>
 
       {!isFormOpen && (
         <Button

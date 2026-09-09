@@ -20,7 +20,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { isOpenNow } from "@/lib/systemuitls";
+import { useOpenStatus } from "@/hooks/useOpenStatus";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BusinessImage } from "@/components/business/BusinessImage";
 import { Field, FieldLabel } from "@/components/ui/field";
@@ -85,7 +85,10 @@ export function BusinessDetailsDialog({
   business,
   distanceKm,
 }: BusinessDetailsDialogProps) {
-  const openStatus = isOpenNow(business.scheduleDays, business.scheduleHours);
+  const openStatus = useOpenStatus(
+    business.scheduleDays,
+    business.scheduleHours,
+  );
   const formattedDistance =
     distanceKm !== null ? formatDistance(distanceKm) : null;
 

@@ -64,6 +64,7 @@ export function ProductSearch({ myLocation, onSelect }: ProductSearchProps) {
         <button
           type="button"
           onClick={() => setOpen(true)}
+          translate="no"
           className="relative flex h-12 w-full items-center justify-center gap-3 rounded-full border border-border bg-card px-8 text-sm font-medium text-foreground shadow-lg transition-colors hover:bg-muted/60"
         >
           <Search className="size-4 shrink-0 text-muted-foreground" />
