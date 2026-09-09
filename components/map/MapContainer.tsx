@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Map,
   MapControls,
   MapMarker,
+  MapRoute,
   MarkerContent,
   MarkerLabel,
   MarkerPopup,
@@ -12,10 +13,17 @@ import {
 } from "@/components/ui/map";
 import type { Business } from "@/types";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { Button } from "../ui/button";
 import { calculateDistanceKm } from "@/lib/geo";
 import { cn } from "@/lib/utils";
 import { useOpenStatus } from "@/hooks/useOpenStatus";
-import { Clock, Navigation, Store } from "lucide-react";
+import {
+  getRoute,
+  formatDuration,
+  formatDistance as formatRouteDistance,
+  type Route,
+} from "@/lib/routing";
+import { Clock, Loader2, Navigation, Store } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -40,20 +48,49 @@ type MapContainerProps = {
   pickerCoordinates?: Coordinates | null;
   myLocation?: Coordinates | null;
   focusCoordinates?: Coordinates | null;
+  selectedBusinessId?: string | null;
   onClickCoordinates?: (coordinates: Coordinates) => void;
 };
+
+const ROUTE_COLOR = "#4CD9A0";
 
 export function MapContainer({
   businesses = [],
   pickerCoordinates = null,
   myLocation = null,
   focusCoordinates = null,
+  selectedBusinessId = null,
   onClickCoordinates,
 }: MapContainerProps) {
+  const [route, setRoute] = useState<Route | null>(null);
+  const [routeBusinessId, setRouteBusinessId] = useState<string | null>(null);
+  const [isRouting, setIsRouting] = useState(false);
+  const [routeError, setRouteError] = useState<string | null>(null);
+
+  async function handleNavigate(business: Business) {
+    if (!myLocation) return;
+    setIsRouting(true);
+    setRouteError(null);
+    setRouteBusinessId(business.id);
+    try {
+      const result = await getRoute(myLocation, {
+        latitude: business.latitude,
+        longitude: business.longitude,
+      });
+      setRoute(result);
+    } catch {
+      setRoute(null);
+      setRouteError("Could not calculate a route");
+    } finally {
+      setIsRouting(false);
+    }
+  }
+
   return (
     <Map center={HAVANA_CENTER} zoom={INITIAL_ZOOM}>
       {onClickCoordinates && <ClickCapture onClick={onClickCoordinates} />}
       {focusCoordinates && <FlyToTarget target={focusCoordinates} />}
+      {route && <MapRoute coordinates={route.coordinates} color={ROUTE_COLOR} width={4} />}
       {myLocation && (
         <MapMarker
           longitude={myLocation.longitude}
@@ -89,6 +126,13 @@ export function MapContainer({
                 business.longitude,
               )
             : null;
+        const activeRoute =
+          routeBusinessId === business.id
+            ? {
+                distanceMeters: route?.distanceMeters ?? null,
+                durationSeconds: route?.durationSeconds ?? null,
+              }
+            : null;
 
         return (
           <MapMarker
@@ -102,9 +146,19 @@ export function MapContainer({
             </MarkerContent>
             <MarkerPopup
               closeButton
+              open={selectedBusinessId === business.id}
               className="border-0 bg-transparent p-0 shadow-none"
             >
-              <BusinessPopup business={business} distanceKm={distanceKm} />
+              <BusinessPopup
+                business={business}
+                distanceKm={distanceKm}
+                activeRoute={activeRoute}
+                isRouting={isRouting && routeBusinessId === business.id}
+                routeError={
+                  routeBusinessId === business.id ? routeError : null
+                }
+                onNavigate={() => handleNavigate(business)}
+              />
             </MarkerPopup>
           </MapMarker>
         );
@@ -196,9 +250,20 @@ function formatDistance(km: number): string {
 function BusinessPopup({
   business,
   distanceKm,
+  activeRoute,
+  isRouting,
+  routeError,
+  onNavigate,
 }: {
   business: Business;
   distanceKm: number | null;
+  activeRoute: {
+    distanceMeters: number | null;
+    durationSeconds: number | null;
+  } | null;
+  isRouting: boolean;
+  routeError: string | null;
+  onNavigate: () => void;
 }) {
   const openStatus = useOpenStatus(
     business.scheduleDays,
@@ -206,7 +271,7 @@ function BusinessPopup({
   );
 
   return (
-    <Card size="sm" className="w-56">
+    <Card size="sm" className="w-64">
       <CardHeader>
         <div className="flex items-center gap-3">
           <Avatar size="lg" className="shrink-0">
@@ -239,7 +304,35 @@ function BusinessPopup({
           </CardDescription>
         )}
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-3">
+        <Button
+          size="default"
+          className="w-full rounded-full bg-white text-black hover:bg-white/90"
+          disabled={isRouting}
+          onClick={onNavigate}
+          data-icon="inline-start"
+        >
+          {isRouting ? (
+            <Loader2 className="animate-spin" aria-hidden="true" />
+          ) : (
+            <Navigation aria-hidden="true" />
+          )}
+          {isRouting ? "Calculating route..." : "Take me there"}
+        </Button>
+        {activeRoute &&
+          activeRoute.distanceMeters !== null &&
+          activeRoute.durationSeconds !== null && (
+            <CardDescription className="flex items-center justify-center gap-2 text-green-300">
+              <span>{formatRouteDistance(activeRoute.distanceMeters)}</span>
+              <span>·</span>
+              <span>{formatDuration(activeRoute.durationSeconds)}</span>
+            </CardDescription>
+          )}
+        {routeError && (
+          <CardDescription className="text-center text-red-400">
+            {routeError}
+          </CardDescription>
+        )}
         <BusinessDetailsDialog business={business} distanceKm={distanceKm} />
       </CardContent>
     </Card>

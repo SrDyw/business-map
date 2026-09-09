@@ -23,9 +23,14 @@ type Coordinates = {
   longitude: number;
 };
 
+type SelectHandler = (
+  coordinates: Coordinates,
+  businessId?: string,
+) => void;
+
 type ProductSearchProps = {
   myLocation?: Coordinates | null;
-  onSelect?: (coordinates: Coordinates) => void;
+  onSelect?: SelectHandler;
 };
 
 export function ProductSearch({ myLocation, onSelect }: ProductSearchProps) {
@@ -103,10 +108,13 @@ export function ProductSearch({ myLocation, onSelect }: ProductSearchProps) {
                           value={`${product.name} ${product.businessName}`}
                           onSelect={() => {
                             setOpen(false);
-                            onSelect?.({
-                              latitude: product.businessLatitude,
-                              longitude: product.businessLongitude,
-                            });
+                            onSelect?.(
+                              {
+                                latitude: product.businessLatitude,
+                                longitude: product.businessLongitude,
+                              },
+                              product.businessId,
+                            );
                           }}
                           className="gap-3"
                         >
