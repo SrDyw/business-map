@@ -1,36 +1,75 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Business Map
 
-## Getting Started
+Directorio georreferenciado de negocios para Cuba, tipo "Google Maps + Marketplace". Los negocios se registran, publican productos con precios, y los clientes buscan productos viendo los resultados en un mapa interactivo con comparativa de precios, distancias y rutas.
 
-First, run the development server:
+## Caracteristicas
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Mapa interactivo con MapLibre GL + OpenStreetMap.
+- Registro de negocios con seleccion de ubicacion en el mapa.
+- Catalogo de productos con precios, unidades y metodos de pago.
+- Buscador global de productos con autocompletado (atajo `Enter`).
+- Visualizacion de la ruta desde tu ubicacion hasta el negocio seleccionado.
+- Autenticacion con correo/contrasena y Google OAuth (NextAuth v5 + Prisma Adapter).
+- Panel administrativo para gestion de usuarios, negocios y productos.
+- UI oscura con acento verde menta (`#4CD9A0`).
+
+## Stack
+
+- Next.js 16 (App Router) como monolito full-stack.
+- TypeScript estricto.
+- Prisma ORM 7 con SQLite (driver adapter `better-sqlite3`).
+- NextAuth v5 para autenticacion.
+- MapLibre GL + OpenStreetMap.
+- TailwindCSS 4 + shadcn/ui.
+- Zod para validacion.
+
+## Estructura
+
+```
+.
+├── app/                # App Router (rutas, server components, API)
+├── components/         # UI modular por dominio (business, search, map, auth, admin)
+├── lib/                # Servicios, db client, utilidades, validaciones
+│   └── generated/      # Cliente Prisma generado (no editar)
+├── prisma/             # Schema, migraciones y seeds
+├── hooks/              # Hooks reutilizables
+└── types/              # Tipos compartidos
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Instalacion y arranque
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+La guia completa de instalacion, configuracion de variables de entorno, setup de Prisma y creacion del usuario administrador esta en [SETUP.md](./SETUP.md).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Resumen rapido:
 
-## Learn More
+```bash
+npm install
+cp .env.example .env   # editar valores (ver SETUP.md)
+npm run db:migrate
+npm run db:seed
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+App disponible en `http://localhost:3000`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Scripts
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Script               | Descripcion                                       |
+| -------------------- | ------------------------------------------------- |
+| `npm run dev`        | Servidor de desarrollo.                           |
+| `npm run build`      | Build de produccion.                              |
+| `npm run start`      | Servidor de produccion (requiere `build` previo). |
+| `npm run lint`       | Ejecuta ESLint sobre todo el proyecto.            |
+| `npm run db:generate`| Regenera el cliente Prisma.                       |
+| `npm run db:migrate` | Aplica migraciones y crea `dev.db`.               |
+| `npm run db:push`    | Sincroniza el schema sin generar migracion.       |
+| `npm run db:studio`  | Abre Prisma Studio.                               |
+| `npm run db:seed`    | Puebla la base con datos de ejemplo.              |
 
-## Deploy on Vercel
+## API
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Endpoints REST bajo `/api/v1/`. Validacion con Zod en todos los inputs. Respuestas en formato `{ success: true, data }` o `{ success: false, error }`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Licencia
+
+Privado. Todos los derechos reservados.
