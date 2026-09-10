@@ -32,6 +32,7 @@ export function BusinessMap({ initialBusinesses }: BusinessMapProps) {
   );
   const { location: myLocation } = useGeolocation(true);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [hasRoute, setHasRoute] = useState(false);
 
   function focusProvider(
     providerCoordinates: Coordinates,
@@ -77,6 +78,7 @@ export function BusinessMap({ initialBusinesses }: BusinessMapProps) {
         focusCoordinates={focusCoordinates}
         selectedBusinessId={selectedBusinessId}
         onClickCoordinates={step === "picker" ? selectCoordinates : undefined}
+        onRouteChange={setHasRoute}
       />
 
       <header className="absolute top-4 left-4 right-4 z-10 flex items-center gap-2">
@@ -104,7 +106,7 @@ export function BusinessMap({ initialBusinesses }: BusinessMapProps) {
         onSelect={focusProvider}
       />
 
-      {!isFormOpen && (
+      {!isFormOpen && !hasRoute && (
         <Button
           className="absolute p-5 right-4 bottom-[calc(env(safe-area-inset-bottom)+1rem)] left-1/2 z-10 w-[calc(100%-2rem)] max-w-xs -translate-x-1/2 shadow-xl sm:right-auto sm:left-4 sm:w-auto sm:max-w-none sm:translate-x-0"
           onClick={openForm}
