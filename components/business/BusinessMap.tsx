@@ -25,10 +25,10 @@ export function BusinessMap({ initialBusinesses }: BusinessMapProps) {
   const [step, setStep] = useState<Step>("picker");
   const [coordinates, setCoordinates] = useState<Coordinates | null>(null);
   const [focusCoordinates, setFocusCoordinates] = useState<Coordinates | null>(
-    null,
+    null
   );
   const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(
-    null,
+    null
   );
   const { location: myLocation } = useGeolocation(true);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -36,7 +36,7 @@ export function BusinessMap({ initialBusinesses }: BusinessMapProps) {
 
   function focusProvider(
     providerCoordinates: Coordinates,
-    businessId?: string,
+    businessId?: string
   ) {
     setFocusCoordinates(providerCoordinates);
     setSelectedBusinessId(businessId ?? null);
@@ -83,20 +83,22 @@ export function BusinessMap({ initialBusinesses }: BusinessMapProps) {
 
       <header className="absolute top-4 left-4 right-4 z-10 flex items-center gap-2">
         {!isFormOpen && (
-          <button
-            type="button"
-            onClick={() => setSearchOpen(true)}
-            translate="no"
-            className="flex h-11 flex-1 items-center gap-3 rounded-full border border-border bg-card px-4 text-sm font-medium text-foreground shadow-lg transition-colors hover:bg-muted/60 sm:max-w-md"
-          >
-            <Search className="size-4 shrink-0 text-muted-foreground" />
-            <span className="truncate">Buscar productos o locales...</span>
-            <span className="ml-auto hidden shrink-0 rounded-md border border-border bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground sm:inline-flex">
-              Enter
-            </span>
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={() => setSearchOpen(true)}
+              translate="no"
+              className="flex h-11 flex-1 items-center gap-3 rounded-full border border-border bg-card px-4 text-sm font-medium text-foreground shadow-lg transition-colors hover:bg-muted/60 sm:max-w-md"
+            >
+              <Search className="size-4 shrink-0 text-muted-foreground" />
+              <span className="truncate">Buscar productos o locales...</span>
+              <span className="ml-auto hidden shrink-0 rounded-md border border-border bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground sm:inline-flex">
+                Enter
+              </span>
+            </button>
+            <AuthButton />
+          </>
         )}
-        <AuthButton />
       </header>
 
       <ProductSearch

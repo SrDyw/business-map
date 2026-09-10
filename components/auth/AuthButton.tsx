@@ -120,7 +120,7 @@ export function AuthButton() {
                 Deberás iniciar sesión de nuevo para volver a tu cuenta.
               </DialogDescription>
             </DialogHeader>
-            <DialogFooter>
+            <DialogFooter className="flex justify-end items-center flex-row">
               <Button
                 variant="outline"
                 onClick={() => setSignOutOpen(false)}
