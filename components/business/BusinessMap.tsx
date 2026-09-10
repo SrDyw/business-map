@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, X } from "lucide-react";
+import { Plus, Search, X } from "lucide-react";
 
 import { MapContainer, type Coordinates } from "@/components/map/MapContainer";
+import { AuthButton } from "@/components/auth/AuthButton";
 import { RegistrationForm } from "@/components/business/RegistrationForm";
+import { DragToDismiss } from "@/components/ui/drag-to-dismiss";
 import { Button } from "@/components/ui/button";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import type { Business } from "@/types";
@@ -23,12 +25,21 @@ export function BusinessMap({ initialBusinesses }: BusinessMapProps) {
   const [step, setStep] = useState<Step>("picker");
   const [coordinates, setCoordinates] = useState<Coordinates | null>(null);
   const [focusCoordinates, setFocusCoordinates] = useState<Coordinates | null>(
-    null,
+    null
+  );
+  const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(
+    null
   );
   const { location: myLocation } = useGeolocation(true);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [hasRoute, setHasRoute] = useState(false);
 
-  function focusProvider(providerCoordinates: Coordinates) {
+  function focusProvider(
+    providerCoordinates: Coordinates,
+    businessId?: string
+  ) {
     setFocusCoordinates(providerCoordinates);
+    setSelectedBusinessId(businessId ?? null);
   }
 
   function openForm() {
@@ -65,14 +76,39 @@ export function BusinessMap({ initialBusinesses }: BusinessMapProps) {
         pickerCoordinates={step === "picker" ? coordinates : null}
         myLocation={myLocation}
         focusCoordinates={focusCoordinates}
+        selectedBusinessId={selectedBusinessId}
         onClickCoordinates={step === "picker" ? selectCoordinates : undefined}
+        onRouteChange={setHasRoute}
       />
 
-      {!isFormOpen && (
-        <ProductSearch myLocation={myLocation} onSelect={focusProvider} />
-      )}
+      <header className="absolute top-4 left-4 right-4 z-10 flex items-center gap-2">
+        {!isFormOpen && (
+          <>
+            <button
+              type="button"
+              onClick={() => setSearchOpen(true)}
+              translate="no"
+              className="flex h-11 flex-1 items-center gap-3 rounded-full border border-border bg-card px-4 text-sm font-medium text-foreground shadow-lg transition-colors hover:bg-muted/60 sm:max-w-md"
+            >
+              <Search className="size-4 shrink-0 text-muted-foreground" />
+              <span className="truncate">Buscar productos o locales...</span>
+              <span className="ml-auto hidden shrink-0 rounded-md border border-border bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground sm:inline-flex">
+                Enter
+              </span>
+            </button>
+            <AuthButton />
+          </>
+        )}
+      </header>
 
-      {!isFormOpen && (
+      <ProductSearch
+        open={searchOpen}
+        onOpenChange={setSearchOpen}
+        myLocation={myLocation}
+        onSelect={focusProvider}
+      />
+
+      {!isFormOpen && !hasRoute && (
         <Button
           className="absolute p-5 right-4 bottom-[calc(env(safe-area-inset-bottom)+1rem)] left-1/2 z-10 w-[calc(100%-2rem)] max-w-xs -translate-x-1/2 shadow-xl sm:right-auto sm:left-4 sm:w-auto sm:max-w-none sm:translate-x-0"
           onClick={openForm}
@@ -93,8 +129,12 @@ export function BusinessMap({ initialBusinesses }: BusinessMapProps) {
       )}
 
       {isFormOpen && step === "form" && coordinates && (
-        <div className="absolute inset-0 z-20 flex items-end justify-center sm:items-center sm:p-4">
-          <div className="relative w-full max-w-md max-h-[92%] overflow-y-auto rounded-t-2xl sm:rounded-2xl">
+        <div className="absolute inset-0 z-20 flex items-end justify-center overflow-hidden sm:items-center sm:p-4">
+          <DragToDismiss
+            onDismiss={closeForm}
+            className="relative w-full max-w-md overflow-hidden rounded-t-2xl bg-popover text-popover-foreground sm:rounded-2xl"
+            contentClassName="max-h-[85vh]"
+          >
             <button
               type="button"
               onClick={closeForm}
@@ -108,7 +148,7 @@ export function BusinessMap({ initialBusinesses }: BusinessMapProps) {
               onChangeLocation={backToPicker}
               onBusinessCreated={addBusiness}
             />
-          </div>
+          </DragToDismiss>
         </div>
       )}
     </div>
