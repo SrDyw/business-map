@@ -51,7 +51,7 @@ export function AuthDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[calc(100%-2rem)] rounded-2xl bg-[#2C2C2E] p-6 shadow-2xl sm:max-w-md">
+      <DialogContent className="max-w-[calc(100%-2rem)] rounded-2xl p-6 shadow-2xl sm:max-w-md">
         <DialogHeader className="items-center text-center">
           <span
             aria-hidden="true"
@@ -60,9 +60,7 @@ export function AuthDialog({
             {mode === "login" ? "B" : "+"}
           </span>
           <DialogTitle className="text-xl">{COPY[mode].title}</DialogTitle>
-          <DialogDescription className="text-gray-300">
-            {COPY[mode].description}
-          </DialogDescription>
+          <DialogDescription>{COPY[mode].description}</DialogDescription>
         </DialogHeader>
 
         <div className="mt-4">
@@ -73,14 +71,14 @@ export function AuthDialog({
           )}
         </div>
 
-        <p className="mt-4 text-center text-sm text-gray-300">
+        <p className="mt-4 text-center text-sm text-muted-foreground">
           {mode === "login" ? (
             <>
               Don&apos;t have an account yet?{" "}
               <button
                 type="button"
                 onClick={toggleMode}
-                className="font-medium text-white underline-offset-4 hover:underline"
+                className="font-medium text-foreground underline-offset-4 hover:underline"
               >
                 Sign Up
               </button>
@@ -91,7 +89,7 @@ export function AuthDialog({
               <button
                 type="button"
                 onClick={toggleMode}
-                className="font-medium text-white underline-offset-4 hover:underline"
+                className="font-medium text-foreground underline-offset-4 hover:underline"
               >
                 Sign In
               </button>

@@ -105,7 +105,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           <div className="w-full border-t border-border" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-card px-2 text-muted-foreground">o</span>
+          <span className="bg-transparent px-2 text-muted-foreground">o</span>
         </div>
       </div>
 
