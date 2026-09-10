@@ -27,7 +27,11 @@ type OsrmResponse = {
   }[];
 };
 
-const OSRM_BASE_URL = "https://router.project-osrm.org/route/v1";
+const OSRM_PROFILE_URLS: Record<RouteProfile, string> = {
+  driving: "https://routing.openstreetmap.de/routed-car/route/v1/driving",
+  walking: "https://routing.openstreetmap.de/routed-foot/route/v1/foot",
+  cycling: "https://routing.openstreetmap.de/routed-bike/route/v1/bike",
+};
 
 export async function getRoute(
   from: Coordinates,
@@ -35,7 +39,7 @@ export async function getRoute(
   profile: RouteProfile = "driving",
 ): Promise<Route> {
   const url =
-    `${OSRM_BASE_URL}/${profile}/` +
+    `${OSRM_PROFILE_URLS[profile]}/` +
     `${from.longitude},${from.latitude};${to.longitude},${to.latitude}` +
     `?overview=full&geometries=geojson`;
 

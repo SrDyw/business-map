@@ -1,6 +1,6 @@
 "use client";
 
-import { Car, MapPin, Navigation, Timer, X } from "lucide-react";
+import { Car, Loader2, MapPin, Navigation, Timer, X } from "lucide-react";
 
 import {
   Select,
@@ -25,6 +25,7 @@ type RouteInfoCardProps = {
   vehicle: RouteProfile;
   onVehicleChange: (vehicle: RouteProfile) => void;
   onClose: () => void;
+  isRecalculating?: boolean;
 };
 
 export function RouteInfoCard({
@@ -34,6 +35,7 @@ export function RouteInfoCard({
   vehicle,
   onVehicleChange,
   onClose,
+  isRecalculating = false,
 }: RouteInfoCardProps) {
   return (
     <div className="absolute right-4 bottom-[calc(env(safe-area-inset-bottom)+1rem)] left-4 z-10 mx-auto max-w-md rounded-2xl border border-border bg-card/95 p-4 shadow-xl backdrop-blur-md sm:right-auto">
@@ -83,6 +85,13 @@ export function RouteInfoCard({
           </div>
         </div>
       </div>
+
+      {isRecalculating && (
+        <div className="mt-3 flex items-center justify-center gap-2 rounded-lg bg-muted/60 p-2 text-sm font-medium text-muted-foreground">
+          <Loader2 className="size-4 animate-spin text-[#4CD9A0]" />
+          Recalculando ruta...
+        </div>
+      )}
 
       <div className="mt-3 flex items-center gap-2 rounded-lg border border-border p-2">
         <Car className="ml-1 size-4 shrink-0 text-muted-foreground" />

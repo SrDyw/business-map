@@ -193,6 +193,7 @@ export function MapContainer({
           vehicle={vehicle}
           onVehicleChange={handleVehicleChange}
           onClose={clearRoute}
+          isRecalculating={isRouting}
         />
       )}
     </div>
