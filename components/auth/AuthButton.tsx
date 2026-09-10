@@ -6,6 +6,14 @@ import Link from "next/link";
 import { Loader2, LogOut, Shield, User } from "lucide-react";
 
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
@@ -27,6 +35,7 @@ export function AuthButton() {
   const { data: session, status } = useSession();
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<AuthMode>("login");
+  const [signOutOpen, setSignOutOpen] = useState(false);
 
   function openDialog(nextMode: AuthMode) {
     setMode(nextMode);
@@ -96,13 +105,38 @@ export function AuthButton() {
             )}
             <DropdownMenuItem
               variant="destructive"
-              onClick={() => signOut({ callbackUrl: "/" })}
+              onClick={() => setSignOutOpen(true)}
             >
               <LogOut />
               Cerrar sesión
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        <Dialog open={signOutOpen} onOpenChange={setSignOutOpen}>
+          <DialogContent align="center" showCloseButton={false}>
+            <DialogHeader>
+              <DialogTitle>¿Cerrar sesión?</DialogTitle>
+              <DialogDescription>
+                Deberás iniciar sesión de nuevo para volver a tu cuenta.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setSignOutOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => signOut({ callbackUrl: "/" })}
+              >
+                <LogOut />
+                Cerrar sesión
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
         <AuthDialog open={open} onOpenChange={setOpen} defaultMode={mode} />
       </>
     );
