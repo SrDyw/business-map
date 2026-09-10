@@ -8,6 +8,7 @@ import { Loader2, LogOut, Shield, User } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -73,14 +74,16 @@ export function AuthButton() {
             }
           />
           <DropdownMenuContent align="end" className="min-w-52">
-            <DropdownMenuLabel>
-              {session.user.name ?? session.user.email}
-              {session.user.email && session.user.name && (
-                <span className="block truncate text-xs font-normal text-muted-foreground">
-                  {session.user.email}
-                </span>
-              )}
-            </DropdownMenuLabel>
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>
+                {session.user.name ?? session.user.email}
+                {session.user.email && session.user.name && (
+                  <span className="block truncate text-xs font-normal text-muted-foreground">
+                    {session.user.email}
+                  </span>
+                )}
+              </DropdownMenuLabel>
+            </DropdownMenuGroup>
             <DropdownMenuSeparator />
             {session.user.role === "admin" && (
               <>
