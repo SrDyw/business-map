@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Filter, Navigation, Store } from "lucide-react";
+import { Navigation, Store } from "lucide-react";
 
 import {
   Command,
@@ -13,13 +13,6 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { calculateDistanceKm } from "@/lib/geo";
 import { PAYMENT_METHOD_LABELS } from "@/lib/validators";
@@ -42,8 +35,6 @@ type ProductSearchProps = {
   onSelect?: SelectHandler;
 };
 
-type SearchType = "products" | "businesses";
-
 export function ProductSearch({
   open,
   onOpenChange,
@@ -51,7 +42,6 @@ export function ProductSearch({
   onSelect,
 }: ProductSearchProps) {
   const [query, setQuery] = useState("");
-  const [searchType, setSearchType] = useState<SearchType>("products");
   const [products, setProducts] = useState<ProductWithBusiness[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -88,26 +78,6 @@ export function ProductSearch({
       description="Busca productos o locales cerca de ti"
       className="top-16"
     >
-      <div className="flex items-center gap-2 border-b border-border px-3 pt-3 pb-3">
-        <Filter className="size-4 shrink-0 text-muted-foreground" />
-        <Select
-          value={searchType}
-          onValueChange={(value) => setSearchType(value as SearchType)}
-        >
-          <SelectTrigger aria-label="Filtrar búsqueda">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="products">Productos</SelectItem>
-            <SelectItem value="businesses">Locales</SelectItem>
-          </SelectContent>
-        </Select>
-        <span className="text-xs text-muted-foreground">
-          {searchType === "products"
-            ? "Mostrando productos"
-            : "Mostrando locales"}
-        </span>
-      </div>
       <Command>
         <CommandInput
           placeholder="Buscar productos, locales, categorías..."
