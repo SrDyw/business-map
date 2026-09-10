@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Navigation, Search, Store } from "lucide-react";
+import { Filter, Navigation, Store } from "lucide-react";
 
 import {
   Command,
@@ -13,6 +13,13 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { calculateDistanceKm } from "@/lib/geo";
 import { PAYMENT_METHOD_LABELS } from "@/lib/validators";
@@ -29,17 +36,27 @@ type SelectHandler = (
 ) => void;
 
 type ProductSearchProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   myLocation?: Coordinates | null;
   onSelect?: SelectHandler;
 };
 
-export function ProductSearch({ myLocation, onSelect }: ProductSearchProps) {
-  const [open, setOpen] = useState(false);
+type SearchType = "products" | "businesses";
+
+export function ProductSearch({
+  open,
+  onOpenChange,
+  myLocation,
+  onSelect,
+}: ProductSearchProps) {
   const [query, setQuery] = useState("");
+  const [searchType, setSearchType] = useState<SearchType>("products");
   const [products, setProducts] = useState<ProductWithBusiness[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (!open) return;
     fetch("/api/v1/products", { headers: { Accept: "application/json" } })
       .then((response) => response.json())
       .then((result: ApiResponse<ProductWithBusiness[]>) => {
@@ -51,7 +68,7 @@ export function ProductSearch({ myLocation, onSelect }: ProductSearchProps) {
       .finally(() => {
         setIsLoading(false);
       });
-  }, []);
+  }, [open]);
 
   const filteredProducts = products.filter((product) => {
     const term = query.trim().toLowerCase();
@@ -64,100 +81,103 @@ export function ProductSearch({ myLocation, onSelect }: ProductSearchProps) {
   });
 
   return (
-    <>
-      <div className="absolute top-4 left-1/2 z-10 w-64 -translate-x-1/2">
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          translate="no"
-          className="relative flex h-12 w-full items-center justify-center gap-3 rounded-full border border-border bg-card px-8 text-sm font-medium text-foreground shadow-lg transition-colors hover:bg-muted/60"
+    <CommandDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Buscar"
+      description="Busca productos o locales cerca de ti"
+      className="top-16"
+    >
+      <div className="flex items-center gap-2 border-b border-border px-3 pt-3 pb-3">
+        <Filter className="size-4 shrink-0 text-muted-foreground" />
+        <Select
+          value={searchType}
+          onValueChange={(value) => setSearchType(value as SearchType)}
         >
-          <Search className="size-4 shrink-0 text-muted-foreground" />
-          <span className="truncate">Search products...</span>
-          <span className="absolute right-3 hidden shrink-0 rounded-md border border-border bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground sm:inline-flex">
-            Enter
-          </span>
-        </button>
+          <SelectTrigger aria-label="Filtrar búsqueda">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="products">Productos</SelectItem>
+            <SelectItem value="businesses">Locales</SelectItem>
+          </SelectContent>
+        </Select>
+        <span className="text-xs text-muted-foreground">
+          {searchType === "products"
+            ? "Mostrando productos"
+            : "Mostrando locales"}
+        </span>
       </div>
-
-      <CommandDialog
-        open={open}
-        onOpenChange={setOpen}
-        title="Search products"
-        description="Search for available products"
-        className="top-16"
-      >
-        <Command>
-          <CommandInput
-            placeholder="Search products, stores, categories..."
-            value={query}
-            onValueChange={setQuery}
-          />
-          <CommandList>
-            {isLoading ? (
-              <ProductSearchSkeleton />
-            ) : (
-              <>
-                <CommandEmpty>No products found.</CommandEmpty>
-                {filteredProducts.length > 0 && (
-                  <>
-                    <CommandGroup heading="Products">
-                      {filteredProducts.map((product) => (
-                        <CommandItem
-                          key={product.id}
-                          value={`${product.name} ${product.businessName}`}
-                          onSelect={() => {
-                            setOpen(false);
-                            onSelect?.(
-                              {
-                                latitude: product.businessLatitude,
-                                longitude: product.businessLongitude,
-                              },
-                              product.businessId,
-                            );
-                          }}
-                          className="gap-3"
-                        >
-                          <Store className="size-4 shrink-0 text-muted-foreground" />
-                          <div className="flex min-w-0 flex-1 flex-col">
-                            <span className="truncate font-medium">
-                              {product.name}
-                            </span>
-                            <span className="truncate text-xs text-muted-foreground">
-                              {product.businessName}
-                            </span>
-                            {myLocation && (
-                              <BusinessDistance
-                                myLocation={myLocation}
-                                latitude={product.businessLatitude}
-                                longitude={product.businessLongitude}
-                              />
-                            )}
-                          </div>
-                          <div className="ml-auto flex shrink-0 flex-col items-end">
-                            <span className="text-sm font-semibold text-primary">
-                              ${formatPrice(product.price)}
-                              <span className="text-xs font-normal text-muted-foreground">
-                                {" "}
-                                /{product.unit}
-                              </span>
-                            </span>
-                            <PaymentBadge
-                              methods={product.businessPaymentMethods}
+      <Command>
+        <CommandInput
+          placeholder="Buscar productos, locales, categorías..."
+          value={query}
+          onValueChange={setQuery}
+        />
+        <CommandList>
+          {isLoading ? (
+            <ProductSearchSkeleton />
+          ) : (
+            <>
+              <CommandEmpty>No se encontraron resultados.</CommandEmpty>
+              {filteredProducts.length > 0 && (
+                <>
+                  <CommandGroup heading="Productos">
+                    {filteredProducts.map((product) => (
+                      <CommandItem
+                        key={product.id}
+                        value={`${product.name} ${product.businessName}`}
+                        onSelect={() => {
+                          onOpenChange(false);
+                          onSelect?.(
+                            {
+                              latitude: product.businessLatitude,
+                              longitude: product.businessLongitude,
+                            },
+                            product.businessId,
+                          );
+                        }}
+                        className="gap-3"
+                      >
+                        <Store className="size-4 shrink-0 text-muted-foreground" />
+                        <div className="flex min-w-0 flex-1 flex-col">
+                          <span className="truncate font-medium">
+                            {product.name}
+                          </span>
+                          <span className="truncate text-xs text-muted-foreground">
+                            {product.businessName}
+                          </span>
+                          {myLocation && (
+                            <BusinessDistance
+                              myLocation={myLocation}
+                              latitude={product.businessLatitude}
+                              longitude={product.businessLongitude}
                             />
-                          </div>
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                    <CommandSeparator />
-                  </>
-                )}
-              </>
-            )}
-          </CommandList>
-        </Command>
-      </CommandDialog>
-    </>
+                          )}
+                        </div>
+                        <div className="ml-auto flex shrink-0 flex-col items-end">
+                          <span className="text-sm font-semibold text-primary">
+                            ${formatPrice(product.price)}
+                            <span className="text-xs font-normal text-muted-foreground">
+                              {" "}
+                              /{product.unit}
+                            </span>
+                          </span>
+                          <PaymentBadge
+                            methods={product.businessPaymentMethods}
+                          />
+                        </div>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                  <CommandSeparator />
+                </>
+              )}
+            </>
+          )}
+        </CommandList>
+      </Command>
+    </CommandDialog>
   );
 }
 

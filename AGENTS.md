@@ -83,6 +83,7 @@ Stack (fixed):
 
 ## Git workflow
 
+- **Commit after every completed change**: once a change is done, lint/typecheck passes and the working state is clean, commit to the feature branch (`ft/<name>`) with a concise message in the repo style. Don't wait for the user to ask.
 - **NEVER commit to `main` or `develop`**. Current working branch: `ft/<name>`.
 - Branch naming: `feature/<desc>`, `fix/<desc>`, `chore/<desc>`, `hotfix/<desc>`, `ft/<desc>`.
 - Commit format: `<type>(<scope>): <subject>`. Types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`.

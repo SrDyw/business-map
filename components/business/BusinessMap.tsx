@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, X } from "lucide-react";
+import { Plus, Search, X } from "lucide-react";
 
 import { MapContainer, type Coordinates } from "@/components/map/MapContainer";
 import { AuthButton } from "@/components/auth/AuthButton";
@@ -31,6 +31,7 @@ export function BusinessMap({ initialBusinesses }: BusinessMapProps) {
     null,
   );
   const { location: myLocation } = useGeolocation(true);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   function focusProvider(
     providerCoordinates: Coordinates,
@@ -78,13 +79,30 @@ export function BusinessMap({ initialBusinesses }: BusinessMapProps) {
         onClickCoordinates={step === "picker" ? selectCoordinates : undefined}
       />
 
-      {!isFormOpen && (
-        <ProductSearch myLocation={myLocation} onSelect={focusProvider} />
-      )}
-
-      <div className="absolute top-[4.5rem] right-4 z-10 sm:top-4">
+      <header className="absolute top-4 left-4 right-4 z-10 flex items-center gap-2">
+        {!isFormOpen && (
+          <button
+            type="button"
+            onClick={() => setSearchOpen(true)}
+            translate="no"
+            className="flex h-11 flex-1 items-center gap-3 rounded-full border border-border bg-card px-4 text-sm font-medium text-foreground shadow-lg transition-colors hover:bg-muted/60 sm:max-w-md"
+          >
+            <Search className="size-4 shrink-0 text-muted-foreground" />
+            <span className="truncate">Buscar productos o locales...</span>
+            <span className="ml-auto hidden shrink-0 rounded-md border border-border bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground sm:inline-flex">
+              Enter
+            </span>
+          </button>
+        )}
         <AuthButton />
-      </div>
+      </header>
+
+      <ProductSearch
+        open={searchOpen}
+        onOpenChange={setSearchOpen}
+        myLocation={myLocation}
+        onSelect={focusProvider}
+      />
 
       {!isFormOpen && (
         <Button
