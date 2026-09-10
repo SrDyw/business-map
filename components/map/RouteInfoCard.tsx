@@ -1,6 +1,16 @@
 "use client";
 
-import { Car, Loader2, MapPin, Navigation, Timer, X } from "lucide-react";
+import {
+  Bike,
+  Car,
+  Footprints,
+  Loader2,
+  MapPin,
+  Navigation,
+  Timer,
+  type LucideIcon,
+  X,
+} from "lucide-react";
 
 import {
   Select,
@@ -28,6 +38,12 @@ type RouteInfoCardProps = {
   isRecalculating?: boolean;
 };
 
+const VEHICLE_ICONS: Record<RouteProfile, LucideIcon> = {
+  driving: Car,
+  cycling: Bike,
+  walking: Footprints,
+};
+
 export function RouteInfoCard({
   destination,
   distanceMeters,
@@ -37,6 +53,8 @@ export function RouteInfoCard({
   onClose,
   isRecalculating = false,
 }: RouteInfoCardProps) {
+  const VehicleIcon = VEHICLE_ICONS[vehicle];
+
   return (
     <div className="absolute right-4 bottom-[calc(env(safe-area-inset-bottom)+1rem)] left-4 z-10 mx-auto max-w-md rounded-2xl border border-border bg-card/95 p-4 shadow-xl backdrop-blur-md sm:right-auto">
       <button
@@ -94,7 +112,7 @@ export function RouteInfoCard({
       )}
 
       <div className="mt-3 flex items-center gap-2 rounded-lg border border-border p-2">
-        <Car className="ml-1 size-4 shrink-0 text-muted-foreground" />
+        <VehicleIcon className="ml-1 size-4 shrink-0 text-muted-foreground" />
         <span className="text-sm font-medium text-muted-foreground">
           Vehículo
         </span>
