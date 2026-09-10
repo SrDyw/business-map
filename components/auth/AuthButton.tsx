@@ -3,7 +3,17 @@
 import { useState } from "react";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
-import { LogIn, LogOut, Shield } from "lucide-react";
+import { Loader2, LogOut, Shield, User } from "lucide-react";
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AuthDialog, type AuthMode } from "@/components/auth/AuthDialog";
 import { Button } from "@/components/ui/button";
 
@@ -24,44 +34,74 @@ export function AuthButton() {
 
   if (status === "loading") {
     return (
-      <Button variant="outline" disabled className="h-11 shrink-0 rounded-full">
-        ...
+      <Button
+        variant="outline"
+        size="icon"
+        disabled
+        className="size-11 shrink-0 rounded-full"
+        aria-label="Cargando sesión"
+      >
+        <Loader2 className="size-5 animate-spin" />
       </Button>
     );
   }
 
   if (session?.user) {
     return (
-      <div className="flex h-11 shrink-0 items-center gap-2 rounded-full border border-border bg-card py-1 pr-1 pl-2">
-        <span
-          aria-hidden="true"
-          className="flex size-8 items-center justify-center rounded-full bg-[#4CD9A0]/15 text-sm font-semibold text-[#4CD9A0]"
-        >
-          {getInitial(session.user.name, session.user.email)}
-        </span>
-        <span className="hidden max-w-28 truncate text-sm font-medium sm:block">
-          {session.user.name ?? session.user.email}
-        </span>
-        {session.user.role === "admin" && (
-          <Link
-            href="/admin"
-            className="flex size-8 items-center justify-center rounded-full transition-colors hover:bg-muted"
-            title="Panel administrativo"
-          >
-            <Shield className="size-4 text-[#4CD9A0]" />
-          </Link>
-        )}
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          className="rounded-full"
-          onClick={() => signOut({ callbackUrl: "/" })}
-          aria-label="Cerrar sesión"
-          title="Cerrar sesión"
-        >
-          <LogOut />
-        </Button>
-      </div>
+      <>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-11 shrink-0 rounded-full border border-border bg-card shadow-lg"
+                aria-label="Menú de cuenta"
+              >
+                <Avatar size="sm" className="size-8">
+                  {session.user.image && (
+                    <AvatarImage
+                      src={session.user.image}
+                      alt={session.user.name ?? ""}
+                    />
+                  )}
+                  <AvatarFallback>
+                    {getInitial(session.user.name, session.user.email)}
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            }
+          />
+          <DropdownMenuContent align="end" className="min-w-52">
+            <DropdownMenuLabel>
+              {session.user.name ?? session.user.email}
+              {session.user.email && session.user.name && (
+                <span className="block truncate text-xs font-normal text-muted-foreground">
+                  {session.user.email}
+                </span>
+              )}
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {session.user.role === "admin" && (
+              <>
+                <DropdownMenuItem render={<Link href="/admin" />}>
+                  <Shield />
+                  Panel administrativo
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+              </>
+            )}
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() => signOut({ callbackUrl: "/" })}
+            >
+              <LogOut />
+              Cerrar sesión
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <AuthDialog open={open} onOpenChange={setOpen} defaultMode={mode} />
+      </>
     );
   }
 
@@ -69,10 +109,12 @@ export function AuthButton() {
     <>
       <Button
         onClick={() => openDialog("login")}
-        className="h-11 shrink-0 rounded-full"
+        size="icon"
+        className="size-11 shrink-0 rounded-full"
+        aria-label="Iniciar sesión"
+        title="Iniciar sesión"
       >
-        <LogIn />
-        Iniciar sesión
+        <User className="size-5" />
       </Button>
       <AuthDialog open={open} onOpenChange={setOpen} defaultMode={mode} />
     </>
