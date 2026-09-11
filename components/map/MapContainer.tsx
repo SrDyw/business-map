@@ -2,30 +2,26 @@
 
 import { useEffect, useState } from "react";
 
+import { Map, MapRoute } from "@/components/ui/map";
 import {
-  Map,
-  MapMarker,
-  MapRoute,
-  MarkerContent,
-  MarkerLabel,
-  MarkerPopup,
-} from "@/components/ui/map";
-import {
-  BusinessPin,
   ClickCapture,
   FlyToTarget,
-  MyLocationPin,
-  PICKER_COLOR,
   type OverlayCoordinates,
 } from "@/components/map/MapOverlays";
-import { BusinessPopup } from "@/components/map/BusinessPopup";
+import {
+  BusinessMarkersLayer,
+} from "@/components/map/BusinessMarkersLayer";
+import {
+  PickerMarker,
+  UserLocationMarker,
+} from "@/components/map/MapMarkers";
 import { RouteInfoCard } from "@/components/map/RouteInfoCard";
 import type { Business } from "@/types";
-import { calculateDistanceKm } from "@/lib/geo";
 import { getRoute, type Route, type RouteProfile } from "@/lib/routing";
 
 const HAVANA_CENTER: [number, number] = [-82.3635, 23.1395];
 const INITIAL_ZOOM = 12;
+const ROUTE_COLOR = "#4CD9A0";
 
 export type Coordinates = OverlayCoordinates;
 
@@ -38,8 +34,6 @@ export type MapContainerProps = {
   onClickCoordinates?: (coordinates: Coordinates) => void;
   onRouteChange?: (hasRoute: boolean) => void;
 };
-
-const ROUTE_COLOR = "#4CD9A0";
 
 export function MapContainer({
   businesses = [],
@@ -109,80 +103,18 @@ export function MapContainer({
             width={4}
           />
         )}
-        {myLocation && (
-          <MapMarker
-            longitude={myLocation.longitude}
-            latitude={myLocation.latitude}
-          >
-            <MarkerContent>
-              <MyLocationPin />
-            </MarkerContent>
-            <MarkerLabel>Your location</MarkerLabel>
-          </MapMarker>
-        )}
-        {pickerCoordinates && (
-          <MapMarker
-            longitude={pickerCoordinates.longitude}
-            latitude={pickerCoordinates.latitude}
-          >
-            <MarkerContent>
-              <div
-                className="h-6 w-6 rounded-full border-2 border-white shadow-lg ring-2 ring-[#4CD9A0]/60 ring-offset-1"
-                style={{ backgroundColor: PICKER_COLOR }}
-              />
-            </MarkerContent>
-            <MarkerLabel>Selected location</MarkerLabel>
-          </MapMarker>
-        )}
-        {businesses.map((business) => {
-          const distanceKm =
-            myLocation !== null
-              ? calculateDistanceKm(
-                  myLocation.latitude,
-                  myLocation.longitude,
-                  business.latitude,
-                  business.longitude,
-                )
-              : null;
-          const activeRoute =
-            routeBusinessId === business.id
-              ? {
-                  distanceMeters: route?.distanceMeters ?? null,
-                  durationSeconds: route?.durationSeconds ?? null,
-                }
-              : null;
-
-          return (
-            <MapMarker
-              key={business.id}
-              longitude={business.longitude}
-              latitude={business.latitude}
-            >
-              <MarkerContent>
-                <BusinessPin business={business} />
-                <MarkerLabel className="font-bold">
-                  {business.name}
-                </MarkerLabel>
-              </MarkerContent>
-              <MarkerPopup
-                closeButton
-                open={selectedBusinessId === business.id}
-                className="border-0 bg-transparent p-0 shadow-none"
-              >
-                <BusinessPopup
-                  business={business}
-                  distanceKm={distanceKm}
-                  activeRoute={activeRoute}
-                  isRouting={isRouting && routeBusinessId === business.id}
-                  routeError={
-                    routeBusinessId === business.id ? routeError : null
-                  }
-                  onNavigate={() => navigateTo(business)}
-                />
-              </MarkerPopup>
-            </MapMarker>
-          );
-        })}
+        {myLocation && <UserLocationMarker location={myLocation} />}
+        {pickerCoordinates && <PickerMarker coordinates={pickerCoordinates} />}
+        <BusinessMarkersLayer
+          businesses={businesses}
+          myLocation={myLocation}
+          selectedBusinessId={selectedBusinessId}
+          routeBusinessId={routeBusinessId}
+          route={route}
+          isRouting={isRouting}
+          routeError={routeError}
+          onNavigate={navigateTo}
+        />
       </Map>
 
       {route && routeDestination && (
