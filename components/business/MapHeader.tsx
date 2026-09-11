@@ -3,12 +3,14 @@
 import { Menu, Search } from "lucide-react";
 
 import { AuthButton } from "@/components/auth/AuthButton";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 type MapHeaderProps = {
   onOpenSearch: () => void;
+  onRegisterBusiness: () => void;
 };
 
-export function MapHeader({ onOpenSearch }: MapHeaderProps) {
+export function MapHeader({ onOpenSearch, onRegisterBusiness }: MapHeaderProps) {
   return (
     <header className="absolute top-4 left-4 right-4 z-10">
       <div className="flex items-center gap-2 rounded-full border border-border bg-card px-2 py-1.5 shadow-lg">
@@ -32,8 +34,9 @@ export function MapHeader({ onOpenSearch }: MapHeaderProps) {
           </span>
         </button>
 
+        <ThemeToggle />
         <div className="shrink-0">
-          <AuthButton />
+          <AuthButton onRegisterBusiness={onRegisterBusiness} />
         </div>
       </div>
     </header>

@@ -31,6 +31,7 @@ export type MapContainerProps = {
   myLocation?: Coordinates | null;
   focusCoordinates?: Coordinates | null;
   selectedBusinessId?: string | null;
+  theme?: "light" | "dark";
   onClickCoordinates?: (coordinates: Coordinates) => void;
   onRouteChange?: (hasRoute: boolean) => void;
 };
@@ -41,6 +42,7 @@ export function MapContainer({
   myLocation = null,
   focusCoordinates = null,
   selectedBusinessId = null,
+  theme,
   onClickCoordinates,
   onRouteChange,
 }: MapContainerProps) {
@@ -93,7 +95,7 @@ export function MapContainer({
 
   return (
     <div className="relative h-full w-full">
-      <Map center={HAVANA_CENTER} zoom={INITIAL_ZOOM}>
+      <Map center={HAVANA_CENTER} zoom={INITIAL_ZOOM} theme={theme}>
         {onClickCoordinates && <ClickCapture onClick={onClickCoordinates} />}
         {focusCoordinates && <FlyToTarget target={focusCoordinates} />}
         {route && (

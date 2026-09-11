@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
-import { Loader2, LogOut, Shield, User } from "lucide-react";
+import { Loader2, LogOut, Shield, Store, User } from "lucide-react";
 
 import {
   Dialog,
@@ -31,7 +31,11 @@ function getInitial(name?: string | null, email?: string | null): string {
   return source.charAt(0).toUpperCase();
 }
 
-export function AuthButton() {
+type AuthButtonProps = {
+  onRegisterBusiness?: () => void;
+};
+
+export function AuthButton({ onRegisterBusiness }: AuthButtonProps = {}) {
   const { data: session, status } = useSession();
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<AuthMode>("login");
@@ -94,6 +98,12 @@ export function AuthButton() {
               </DropdownMenuLabel>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
+            {onRegisterBusiness && (
+              <DropdownMenuItem onClick={onRegisterBusiness}>
+                <Store />
+                Registrar negocio
+              </DropdownMenuItem>
+            )}
             {session.user.role === "admin" && (
               <>
                 <DropdownMenuItem render={<Link href="/admin" />}>

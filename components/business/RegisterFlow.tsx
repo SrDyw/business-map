@@ -33,17 +33,6 @@ export function RegisterFlow({
   onBusinessCreated,
   hasRoute,
 }: RegisterFlowProps) {
-  if (!isFormOpen && !hasRoute) {
-    return (
-      <Button
-        className="absolute p-5 right-4 bottom-[calc(env(safe-area-inset-bottom)+1rem)] left-1/2 z-10 w-[calc(100%-2rem)] max-w-xs -translate-x-1/2 shadow-xl sm:right-auto sm:left-4 sm:w-auto sm:max-w-none sm:translate-x-0"
-        onClick={onOpen}
-      >
-        <Plus className="size-4" /> Register my business
-      </Button>
-    );
-  }
-
   if (isFormOpen && step === "picker") {
     return (
       <div className="pointer-events-none absolute inset-0 z-20 flex items-start justify-center pt-16 sm:pt-24">

@@ -7,6 +7,7 @@ import { MapHeader } from "@/components/business/MapHeader";
 import { RegisterFlow } from "@/components/business/RegisterFlow";
 import { ProductSearch } from "@/components/search/ProductSearch";
 import { useGeolocation } from "@/hooks/useGeolocation";
+import { useTheme } from "@/hooks/useTheme";
 import type { Business } from "@/types";
 
 type BusinessMapProps = {
@@ -29,6 +30,7 @@ export function BusinessMap({ initialBusinesses }: BusinessMapProps) {
   const { location: myLocation } = useGeolocation(true);
   const [searchOpen, setSearchOpen] = useState(false);
   const [hasRoute, setHasRoute] = useState(false);
+  const { theme } = useTheme();
 
   function focusProvider(
     providerCoordinates: Coordinates,
@@ -73,12 +75,16 @@ export function BusinessMap({ initialBusinesses }: BusinessMapProps) {
         myLocation={myLocation}
         focusCoordinates={focusCoordinates}
         selectedBusinessId={selectedBusinessId}
+        theme={theme}
         onClickCoordinates={step === "picker" ? selectCoordinates : undefined}
         onRouteChange={setHasRoute}
       />
 
       {!isFormOpen && (
-        <MapHeader onOpenSearch={() => setSearchOpen(true)} />
+        <MapHeader
+          onOpenSearch={() => setSearchOpen(true)}
+          onRegisterBusiness={openForm}
+        />
       )}
 
       <ProductSearch
