@@ -1,4 +1,3 @@
-import { resolveMx } from "node:dns/promises";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { AUTH_ERROR_MESSAGES } from "./../auth-errors";
@@ -39,56 +38,17 @@ export function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
 }
 
-const DNS_OVER_HTTPS_URL = "https://dns.google/resolve";
-const DEFINITIVE_DNS_ERROR_CODES = new Set(["ENOTFOUND", "ENODATA"]);
-
-type DnsJsonResponse = {
-  Status?: number;
-  Answer?: unknown[];
-};
-
-async function domainCanReceiveEmail(domain: string): Promise<boolean> {
-  try {
-    const records = await resolveMx(domain);
-    return records.length > 0;
-  } catch (error) {
-    const code =
-      error instanceof Error
-        ? (error as NodeJS.ErrnoException).code ?? ""
-        : "";
-    if (DEFINITIVE_DNS_ERROR_CODES.has(code)) {
-      return false;
-    }
-    return domainCanReceiveEmailViaDoh(domain);
-  }
-}
-
-async function domainCanReceiveEmailViaDoh(
-  domain: string,
-): Promise<boolean> {
-  try {
-    const response = await fetch(
-      `${DNS_OVER_HTTPS_URL}?name=${encodeURIComponent(domain)}&type=MX`,
-    );
-    if (!response.ok) {
-      return false;
-    }
-    const result = (await response.json()) as DnsJsonResponse;
-    return (
-      result.Status === 0 &&
-      Array.isArray(result.Answer) &&
-      result.Answer.length > 0
-    );
-  } catch {
-    return false;
-  }
-}
-
 async function isNameTaken(name: string): Promise<boolean> {
-  const rows = await prisma.$queryRaw<Array<{ id: string }>>`
-    SELECT id FROM "User" WHERE name = ${name} COLLATE NOCASE LIMIT 1
-  `;
-  return rows.length > 0;
+  const existing = await prisma.user.findFirst({
+    where: {
+      name: {
+        equals: name,
+        mode: "insensitive",
+      },
+    },
+    select: { id: true },
+  });
+  return existing !== null;
 }
 
 export async function registerUser(data: RegisterUserInput) {
@@ -100,11 +60,6 @@ export async function registerUser(data: RegisterUserInput) {
   const name = parsed.data.name.trim();
   const email = normalizeEmail(parsed.data.email);
   const { password } = parsed.data;
-
-  const [, domain] = email.split("@");
-  if (!domain || !(await domainCanReceiveEmail(domain))) {
-    throw new EmailNotFoundError();
-  }
 
   const existingEmail = await prisma.user.findUnique({ where: { email } });
   if (existingEmail) {
