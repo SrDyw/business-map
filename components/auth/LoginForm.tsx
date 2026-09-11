@@ -7,6 +7,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import toast from "@/lib/toast";
 
 type LoginFormProps = {
   onSuccess?: () => void;
@@ -17,14 +18,12 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
   const formId = useId();
   const emailId = `${formId}-email`;
   const passwordId = `${formId}-password`;
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
-    setError(null);
 
     const formData = new FormData(event.currentTarget);
     const email = String(formData.get("email") ?? "");
@@ -37,10 +36,12 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
     });
 
     if (result?.error) {
-      setError("Credenciales incorrectas");
+      toast.error("No se pudo iniciar sesión", "Email o contraseña incorrectos");
       setLoading(false);
       return;
     }
+
+    toast.success("Sesión iniciada", "Bienvenido de nuevo");
 
     if (onSuccess) {
       onSuccess();
@@ -93,8 +94,6 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           </Button>
         </div>
       </div>
-
-      {error ? <p className="text-sm text-red-400">{error}</p> : null}
 
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? "Iniciando..." : "Iniciar sesión"}

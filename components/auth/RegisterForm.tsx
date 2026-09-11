@@ -8,12 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AUTH_ERROR_MESSAGES } from "@/lib/auth-errors";
+import toast from "@/lib/toast";
 
 type FormErrors = {
   name?: string;
   email?: string;
   password?: string;
-  general?: string;
 };
 
 const FIELD_ERRORS: Record<string, keyof FormErrors> = {
@@ -58,8 +58,15 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
       const result = await res.json();
 
       if (!res.ok) {
-        const key = FIELD_ERRORS[result.error] ?? "general";
-        setErrors({ [key]: result.error });
+        const field = FIELD_ERRORS[result.error];
+
+        if (field) {
+          // Error asociado a un campo → se muestra inline
+          setErrors({ [field]: result.error });
+        } else {
+          // Error general → toast
+          toast.error("No se pudo crear la cuenta", result.error);
+        }
         return;
       }
 
@@ -69,6 +76,8 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
         redirect: false,
       });
 
+      toast.success("¡Cuenta creada!", `Bienvenido, ${payload.name}`);
+
       if (onSuccess) {
         onSuccess();
       } else {
@@ -76,7 +85,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
       }
       router.refresh();
     } catch {
-      setErrors({ general: "Error al conectar con el servidor" });
+      toast.error("Error de conexión", "No se pudo conectar con el servidor");
     } finally {
       setLoading(false);
     }
@@ -145,10 +154,6 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
           <p className="text-xs text-red-400">{errors.password}</p>
         ) : null}
       </div>
-
-      {errors.general ? (
-        <p className="text-sm text-red-400">{errors.general}</p>
-      ) : null}
 
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? "Creando cuenta..." : "Crear cuenta"}
