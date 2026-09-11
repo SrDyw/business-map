@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type Coordinates = {
   latitude: number;
@@ -20,8 +20,16 @@ export function useGeolocation(autoStart = false): GeoState {
   const [location, setLocation] = useState<Coordinates | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const watchIdRef = useRef<number | null>(null);
 
-  const getLocation = useCallback(() => {
+  const clearWatch = useCallback(() => {
+    if (watchIdRef.current !== null) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
+    }
+  }, []);
+
+  const startWatching = useCallback(() => {
     if (!("geolocation" in navigator)) {
       setError("Your browser does not support geolocation");
       return;
@@ -29,8 +37,9 @@ export function useGeolocation(autoStart = false): GeoState {
 
     setIsLoading(true);
     setError(null);
+    clearWatch();
 
-    navigator.geolocation.getCurrentPosition(
+    watchIdRef.current = navigator.geolocation.watchPosition(
       (position) => {
         setLocation({
           latitude: position.coords.latitude,
@@ -44,15 +53,15 @@ export function useGeolocation(autoStart = false): GeoState {
       },
       { enableHighAccuracy: true, timeout: TIMEOUT_MS, maximumAge: 0 },
     );
-  }, []);
+  }, [clearWatch]);
 
   useEffect(() => {
     if (!autoStart) return;
-    const timer = setTimeout(() => getLocation(), 0);
-    return () => clearTimeout(timer);
-  }, [autoStart, getLocation]);
+    startWatching();
+    return clearWatch;
+  }, [autoStart, startWatching, clearWatch]);
 
-  return { location, isLoading, error, getLocation };
+  return { location, isLoading, error, getLocation: startWatching };
 }
 
 function geolocationErrorMessage(code: number): string {
