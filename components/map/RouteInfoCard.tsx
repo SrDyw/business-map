@@ -3,6 +3,8 @@
 import {
   Bike,
   Car,
+  ChevronDown,
+  ChevronUp,
   Footprints,
   Loader2,
   MapPin,
@@ -27,6 +29,7 @@ import {
   type RouteProfile,
 } from "@/lib/routing";
 import type { Business } from "@/types";
+import { useState } from "react";
 
 type RouteInfoCardProps = {
   destination: Business;
@@ -54,18 +57,86 @@ export function RouteInfoCard({
   isRecalculating = false,
 }: RouteInfoCardProps) {
   const VehicleIcon = VEHICLE_ICONS[vehicle];
+  const [isMini, setIsMini] = useState(false);
 
+  const toggleMinimizeStatus = () => {
+    setIsMini((prev) => !prev);
+  };
+
+  // ---- Versión minimizada ----
+  if (isMini) {
+    return (
+      <div className="absolute right-4 bottom-[calc(env(safe-area-inset-bottom)+1rem)] left-4 z-10 mx-auto max-w-md rounded-2xl border border-border bg-card/95 p-3 shadow-xl backdrop-blur-md sm:right-auto">
+        <div className="flex items-center gap-3">
+          <MapPin className="size-4 shrink-0 text-[#4CD9A0]" />
+          <p className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">
+            {destination.name}
+          </p>
+
+          <div className="flex shrink-0 items-center gap-2 text-xs font-medium text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <Timer className="size-3.5 text-[#4CD9A0]" />
+              {formatDuration(durationSeconds)}
+            </span>
+            <span className="flex items-center gap-1">
+              <Navigation className="size-3.5 text-[#4CD9A0]" />
+              {formatDistance(distanceMeters)}
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={toggleMinimizeStatus}
+            className="flex size-7 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-muted"
+            aria-label="Expandir ruta"
+            title="Expandir ruta"
+          >
+            <ChevronUp className="size-4" />
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex size-7 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-muted"
+            aria-label="Cerrar ruta"
+            title="Cerrar ruta"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+
+        {isRecalculating && (
+          <div className="mt-2 flex items-center justify-center gap-2 text-xs font-medium text-muted-foreground">
+            <Loader2 className="size-3 animate-spin text-[#4CD9A0]" />
+            Recalculando ruta...
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ---- Versión expandida ----
   return (
     <div className="absolute right-4 bottom-[calc(env(safe-area-inset-bottom)+1rem)] left-4 z-10 mx-auto max-w-md rounded-2xl border border-border bg-card/95 p-4 shadow-xl backdrop-blur-md sm:right-auto">
-      <button
-        type="button"
-        onClick={onClose}
-        className="absolute top-3 right-3 flex size-8 items-center justify-center rounded-full transition-colors hover:bg-muted"
-        aria-label="Cerrar ruta"
-        title="Cerrar ruta"
-      >
-        <X className="size-4" />
-      </button>
+      <div className="absolute top-3 right-3 flex justify-end items-center">
+        <button
+          type="button"
+          onClick={toggleMinimizeStatus}
+          className="flex size-8 items-center justify-center rounded-full transition-colors hover:bg-muted"
+          aria-label="Minimizar ruta"
+          title="Minimizar ruta"
+        >
+          <ChevronDown className="size-4" />
+        </button>
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex size-8 items-center justify-center rounded-full transition-colors hover:bg-muted"
+          aria-label="Cerrar ruta"
+          title="Cerrar ruta"
+        >
+          <X className="size-4" />
+        </button>
+      </div>
 
       <div className="flex items-start gap-3 pr-8">
         <MapPin className="mt-0.5 size-5 shrink-0 text-[#4CD9A0]" />
@@ -118,9 +189,7 @@ export function RouteInfoCard({
         </span>
         <Select
           value={vehicle}
-          onValueChange={(value) =>
-            onVehicleChange(value as RouteProfile)
-          }
+          onValueChange={(value) => onVehicleChange(value as RouteProfile)}
         >
           <SelectTrigger className="ml-auto" aria-label="Seleccionar vehículo">
             <SelectValue />
